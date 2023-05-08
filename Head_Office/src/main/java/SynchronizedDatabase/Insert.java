@@ -3,15 +3,12 @@ package SynchronizedDatabase;
 import java.sql.*;
 import java.util.List;
 
-public class DBInsertService {
-    //coordonnées de la base
+public class Insert {
     public String url = "jdbc:mysql://localhost:3306/ho";
     public String user="root";
     public String password = "";
-    //Requete pour inserer dans la base
     public String query = "INSERT INTO product_sale(date, region, product, qty, cost, amt, tax, total, bo_num) values(?,?,?,?,?,?,?,?,?)";
 
-    //Methode pour inserer dans la base
     public void insert(List<Product> productList) throws SQLException {
         try(Connection connection = DriverManager.getConnection(url, user, password);
             PreparedStatement pst = connection.prepareStatement(query)
