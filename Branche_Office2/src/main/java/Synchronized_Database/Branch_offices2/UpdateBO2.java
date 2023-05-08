@@ -12,13 +12,10 @@ public class UpdateBO2 {
     public UpdateBO2() {
         this.url = "jdbc:mysql://localhost:3306/BO2";
     }
-    //Coordonnées de la base
     public String url;
     public String user="root";
     public String password = "";
-    //Requete pour la mise en TRUE de l'attribut sent
     public String query = "UPDATE product_sale set sent = TRUE where id = ?";
-    //Methode pour la mise en TRUE de l'attribut sent
     public void update(List<Product> productEntityList) throws SQLException {
         try(Connection connection = DriverManager.getConnection(url, user, password);
             PreparedStatement pst = connection.prepareStatement(query)

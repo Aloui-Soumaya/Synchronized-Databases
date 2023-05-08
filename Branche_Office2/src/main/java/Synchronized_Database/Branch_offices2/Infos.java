@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.List;
 
 public class Infos {
-    final Object[] column = {"Date","Region","Product","Quantity","Cost","AMT","Tax","Total"};
+    final Object[] column = {"Date","id","Region","Product","Quantity","Cost","AMT","Tax","Total"};
     private JScrollPane scrollPane;
     private JTable dataTable;
     DefaultTableModel dtm;
@@ -35,9 +35,10 @@ public class Infos {
     public void fillTable() throws SQLException {
         dtm.setRowCount(0);
         RetrieveFromBO2 retrieveFromBO2 = new RetrieveFromBO2(true);
-        List<Product> productEntityList = retrieveFromBO2.retrieve();
+        List<Product> productEntityList = retrieveFromBO2.retrieve("ajout");
         for (Product p : productEntityList){
             dtm.addRow(new Object[]{p.getDate().toString(),
+                    p.getId(),
                     p.getRegion(),
                     p.getProduct(),
                     Integer.toString(p.getQty()),

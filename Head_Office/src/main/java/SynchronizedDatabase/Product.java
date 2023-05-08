@@ -15,9 +15,12 @@ public class Product {
     private double total;
     private int bo_num;
 
+    private String method;
+
+
     public Product() {}
 
-    public Product(int id, Date date, String region, String product, int qty, float cost, double amt, float tax, double total, int bo_num) {
+    public Product(int id, Date date, String region, String product, int qty, float cost, double amt, float tax, double total, int bo_num,String method) {
         this.id = id;
         this.date = date;
         this.region = region;
@@ -28,6 +31,7 @@ public class Product {
         this.tax = tax;
         this.total = total;
         this.bo_num=bo_num;
+        this.method=method;
     }
 
     public int getId() {
@@ -108,6 +112,13 @@ public class Product {
 
     public void setBo_num(int bo_num) {
         this.bo_num = bo_num;
+    }
+    public String getMethod() {
+        return method;
+    }
+
+    public void setMethod(String method ) {
+        this.method = method;
     }
 
 }

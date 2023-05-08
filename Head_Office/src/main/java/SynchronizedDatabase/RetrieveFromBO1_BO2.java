@@ -5,14 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RetrieveFromBO1_BO2 {
-    //Coordonnées de la base
     public String user="root";
     public String password = "";
     public String url = "jdbc:mysql://localhost:3306/ho";
 
-//Requete pour recuperer les données
     public String query = "SELECT * FROM product_sale";
-    //Methodes pour recuperer les produits
     public List<Product> retrieve() throws SQLException {
         List<Product> res = new ArrayList<>();
         try(Connection connection = DriverManager.getConnection(url, user, password);

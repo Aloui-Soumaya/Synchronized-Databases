@@ -1,15 +1,24 @@
 package Synchronized_Database.Branch_offices2;
 
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.ConnectionFactory;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 import javax.swing.*;
 
+import static Synchronized_Database.Branch_offices2.Branche_OfficeJob2.*;
+
 
 public class FormulaireAjout extends JPanel{
-    private Connection connection1 = null;
+    public final static String QUEUE_NAME="product_queue1";
+
+    private Connection connection1,connection2 = null;
     private Statement statement = null;
     public JTextField regionTextFld;
     public JTextField productTextFld;
@@ -26,7 +35,7 @@ public class FormulaireAjout extends JPanel{
     Infos infos;
 
     public FormulaireAjout(Infos infos) {
-        setBackground(new Color(0xEFEFEF));
+            setBackground(new Color(0xEFEFEF));
         this.infos = infos;
         setPreferredSize(new Dimension(1200, 1000));
 
@@ -75,8 +84,6 @@ public class FormulaireAjout extends JPanel{
         JLabel idLabel = new JLabel("ID : ");
         idFiled = new JTextField(15);
         textArea = new JTextArea(10, 30);
-
-        //add current date
         p.add(info1);
         p.add(regionLabel);
         p.add(regionTextFld);
@@ -121,18 +128,44 @@ public class FormulaireAjout extends JPanel{
                 String password = "";
                 connection1 = DriverManager.getConnection(
                         url, user, password);
-
-
                 int idProduct = Integer.parseInt(idFiled.getText());
                 System.out.println(idProduct);
-
-                // the mysql insert statement
                 String query = "DELETE FROM product_sale WHERE id = ?";
-
-                // create the mysql insert preparedstatement
+                String query2 = "SELECT * FROM product_sale WHERE id = ?";
+                /***************/
+                connection2 = DriverManager.getConnection(
+                        url, user, password);
+                PreparedStatement preparedStmt2 = connection1.prepareStatement(query2);
+                preparedStmt2.setInt(1, idProduct);
+                ResultSet rs = preparedStmt2.executeQuery();
+                java.util.List<Product> res = new ArrayList<>();
+                while(rs.next()) {
+                    Product product = new Product();
+                    product.setId(rs.getInt("id"));
+                    product.setDate(rs.getDate("date"));
+                    product.setRegion(rs.getString("region"));
+                    product.setProduct(rs.getString("product"));
+                    product.setQty(rs.getInt("qty"));
+                    product.setCost(rs.getFloat("cost"));
+                    product.setAmt(rs.getDouble("amt"));
+                    product.setTax(rs.getFloat("tax"));
+                    product.setTotal(rs.getDouble("total"));
+                    product.setMethod("supprimer");
+                    res.add(product);
+                }
+                String message = serialize(res);
+                System.out.println("what is new to delete : "+ message);
+                ConnectionFactory connectionFactory = new ConnectionFactory();
+                connectionFactory.setHost("localhost");
+                try (com.rabbitmq.client.Connection connection = connectionFactory.newConnection()) {
+                    Channel channel = connection.createChannel();
+                    channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+                    channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
+                    System.out.println(" [x] sent '" + message + " '" + LocalDateTime.now().toString());
+                } catch (Exception e1){ }
+                /*********************/
                 PreparedStatement preparedStmt = connection1.prepareStatement(query);
                 preparedStmt.setInt(1, idProduct);
-                // execute the preparedstatement
                 preparedStmt.execute();
                 System.out.println(preparedStmt);
                 connection1.close();
@@ -140,8 +173,8 @@ public class FormulaireAjout extends JPanel{
                 System.out.println("succes");
                 infos.fillTable();
                 System.out.println("succes");
-
-            } catch (Exception exception){
+            }
+            catch (Exception exception){
 
             }
         }
@@ -154,13 +187,11 @@ public class FormulaireAjout extends JPanel{
             try {
                 Calendar calendar = Calendar.getInstance();
                 java.sql.Date startDate = new java.sql.Date(calendar.getTime().getTime());
-
                 String url ="jdbc:mysql://localhost:3306/BO2";
                 String user="root";
                 String password = "";
                 connection1 = DriverManager.getConnection(
                         url, user, password);
-
                 String region = regionTextFld.getText();
                 String product = productTextFld.getText();
                 int qty = Integer.parseInt(quantityTextFld.getText());
@@ -168,13 +199,8 @@ public class FormulaireAjout extends JPanel{
                 double amt = Double.parseDouble(amtTextFld.getText());
                 float tax = Float.parseFloat(taxTextFld.getText());
                 double total = Double.parseDouble(totalTextFld.getText());
-
-
-                // the mysql insert statement
                 String query = " INSERT INTO product_sale(date, region, product, qty, cost, amt, tax, total)"
                         + " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-                // create the mysql insert preparedstatement
                 PreparedStatement preparedStmt = connection1.prepareStatement(query);
                 preparedStmt.setDate(1, startDate);
                 preparedStmt.setString(2, region);
@@ -184,14 +210,9 @@ public class FormulaireAjout extends JPanel{
                 preparedStmt.setDouble(6, amt);
                 preparedStmt.setFloat(7, tax);
                 preparedStmt.setDouble(8, total);
-
-                // execute the preparedstatement
                 preparedStmt.execute();
-
                 System.out.println(preparedStmt);
-
                 connection1.close();
-
                 regionTextFld.setText("");
                 productTextFld.setText("");
                 quantityTextFld.setText("");
@@ -202,7 +223,18 @@ public class FormulaireAjout extends JPanel{
                 System.out.println("succes");
                 infos.fillTable();
                 System.out.println("succes");
-
+                ConnectionFactory connectionFactory = new ConnectionFactory();
+                connectionFactory.setHost("localhost");
+                java.util.List<Product> productEntityList = retrieveFromBO2.retrieve("ajout");
+                String message = serialize(productEntityList);
+                System.out.println("what is new : "+ message);
+                try (com.rabbitmq.client.Connection connection = connectionFactory.newConnection()) {
+                    Channel channel = connection.createChannel();
+                    channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+                    channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
+                    System.out.println(" [x] sent '" + message + " '" + LocalDateTime.now().toString());
+                    updateBO2.update(productEntityList);
+                } catch (Exception e1){ }
             } catch (Exception exception){
 
             }
@@ -217,7 +249,7 @@ public class FormulaireAjout extends JPanel{
                 Calendar calendar = Calendar.getInstance();
                 java.sql.Date startDate = new java.sql.Date(calendar.getTime().getTime());
 
-                String url ="jdbc:mysql://localhost:3306/BO2";
+                String url ="jdbc:mysql://localhost:3306/BO1";
                 String user="root";
                 String password = "";
                 connection1 = DriverManager.getConnection(
@@ -230,13 +262,7 @@ public class FormulaireAjout extends JPanel{
                 double amt = Double.parseDouble(amtTextFld.getText());
                 float tax = Float.parseFloat(taxTextFld.getText());
                 double total = Double.parseDouble(totalTextFld.getText());
-
-
-                // the mysql insert statement
                 String query = "UPDATE product_sale SET date = ?, region = ? ,product = ? ,qty = ?  , cost = ?,amt = ?,tax = ?,total = ?  WHERE id = ?";
-
-
-                // create the mysql insert preparedstatement
                 PreparedStatement preparedStmt = connection1.prepareStatement(query);
                 preparedStmt.setDate(1, startDate);
                 preparedStmt.setString(2, region);
@@ -247,14 +273,9 @@ public class FormulaireAjout extends JPanel{
                 preparedStmt.setFloat(7, tax);
                 preparedStmt.setDouble(8, total);
                 preparedStmt.setDouble(9, idProduct);
-
-                // execute the preparedstatement
                 preparedStmt.execute();
-
                 System.out.println(preparedStmt);
-
                 connection1.close();
-
                 regionTextFld.setText("");
                 productTextFld.setText("");
                 quantityTextFld.setText("");
@@ -263,10 +284,8 @@ public class FormulaireAjout extends JPanel{
                 taxTextFld.setText("");
                 totalTextFld.setText("");
                 idFiled.setText("");
-                System.out.println("succes");
                 infos.fillTable();
                 System.out.println("succes");
-
             } catch (Exception exception){
 
             }
@@ -275,4 +294,3 @@ public class FormulaireAjout extends JPanel{
 
 
 }
-

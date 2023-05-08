@@ -1,23 +1,19 @@
-package Synchronized_Database.Branch_offices1;
+package Synchronized_Database.Branch_offices2;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RetrieveFromBO1 {
-
     public RetrieveFromBO1(boolean sent) {
         this.url = "jdbc:mysql://localhost:3306/BO1";
-        query = "SELECT * FROM product_sale" + (sent ? "" : " where sent=FALSE");    }
-
-    //Coordonnées de la base
+        query = "SELECT * FROM product_sale" + (sent ? "" : " where sent=FALSE");
+    }
     public String url;
     public String user="root";
     public String password = "";
-    //Requete pour recuperer les données
     public String query;
-    //Methodes pour recuperer les produits
-    public List<Product> retrieve() throws SQLException{
+    public List<Product> retrieve(String method) throws SQLException{
         System.out.println(this.url);
         List<Product> res = new ArrayList<>();
         try(Connection connection = DriverManager.getConnection(url, user, password);
@@ -37,8 +33,8 @@ public class RetrieveFromBO1 {
                 productEntity.setTax(rs.getFloat("tax"));
                 productEntity.setTotal(rs.getDouble("total"));
                 productEntity.setBo_num(1);
+                productEntity.setMethod(method);
                 res.add(productEntity);
-                System.out.println("****"+res);
             }
 
             return res;

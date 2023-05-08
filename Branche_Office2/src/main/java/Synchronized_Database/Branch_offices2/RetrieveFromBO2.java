@@ -5,26 +5,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RetrieveFromBO2 {
-
     public RetrieveFromBO2(boolean sent) {
         this.url = "jdbc:mysql://localhost:3306/BO2";
-        query = "SELECT * FROM product_sale" + (sent ? "" : " where sent=FALSE");  }
-
-    //Coordonnées de la base
+        query = "SELECT * FROM product_sale" + (sent ? "" : " where sent=FALSE");
+    }
     public String url;
     public String user="root";
     public String password = "";
-    //Requete pour recuperer les données
     public String query;
-    //Methodes pour recuperer les produits
-    public List<Product> retrieve() throws SQLException{
+    public List<Product> retrieve(String method) throws SQLException{
         System.out.println(this.url);
         List<Product> res = new ArrayList<>();
         try(Connection connection = DriverManager.getConnection(url, user, password);
             PreparedStatement pst = connection.prepareStatement(query);
-            ResultSet rs = pst.executeQuery()
-        ) {
+            ResultSet rs = pst.executeQuery();
 
+        ) {
             while(rs.next()) {
                 Product productEntity = new Product();
                 productEntity.setId(rs.getInt("id"));
@@ -36,7 +32,8 @@ public class RetrieveFromBO2 {
                 productEntity.setAmt(rs.getDouble("amt"));
                 productEntity.setTax(rs.getFloat("tax"));
                 productEntity.setTotal(rs.getDouble("total"));
-                productEntity.setBo_num(2);
+                productEntity.setBo_num(1);
+                productEntity.setMethod(method);
                 res.add(productEntity);
             }
 

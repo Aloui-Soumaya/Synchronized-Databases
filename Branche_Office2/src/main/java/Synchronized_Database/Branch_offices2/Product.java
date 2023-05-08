@@ -19,6 +19,7 @@ public class Product {
     private float tax;
     private double total;
     private int bo_num;
+    private String method;
 
     public int getId() {
         return id;
@@ -99,7 +100,13 @@ public class Product {
     public void setBo_num(int bo_num) {
         this.bo_num = bo_num;
     }
+    public String getMethod() {
+        return method;
+    }
 
+    public void setMethod(String method) {
+        this.method= method;
+    }
 
     @Override
     public String toString() {

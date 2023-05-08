@@ -17,27 +17,18 @@ import java.util.concurrent.TimeoutException;
 
 
 public class HeadOfficeJob {
-    //Définir sa queue
-    public final static String QUEUE_NAME1="product_sale_queue1";
-    public final static String QUEUE_NAME2="product_sale_queue2";
+    public final static String QUEUE_NAME1="product_queue1";
+    public final static String QUEUE_NAME2="product_queue2";
 
     public static void main(String[] args) throws IOException, TimeoutException {
-
-        //Instancier son DAO
-        DBInsertService dbInsertService = new DBInsertService();
-
-        //Instancier l'interface
+        Insert insert = new Insert();
         JFrame tableFrame = new JFrame();
         tableFrame.setVisible(true);
         tableFrame.setTitle("Head Office");
-
         Infos infos = new Infos();
-
         tableFrame.add(infos.getScrollPane());
         tableFrame.setSize(900,500);
         tableFrame.setLocation(500,250);
-
-        //Preparation necessaire pour le receiver de RabbitMQ
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setHost("localhost");
         Connection connection = connectionFactory.newConnection();
@@ -46,16 +37,12 @@ public class HeadOfficeJob {
         channel1.queueDeclare(QUEUE_NAME1 ,false,false,false,null);
         channel2.queueDeclare(QUEUE_NAME1 ,false,false,false,null);
         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
-
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             String receivedMessage = new String(delivery.getBody(),"UTF-8");
-            System.out.println("receve :"+receivedMessage);
             List<Product> productList = deserialize(receivedMessage);
-            System.out.println(productList);
+            System.out.println("mesg here "+productList);
             try {
-                //insertion dans la base
-                dbInsertService.insert(productList);
-                //Mettre à jour le tableau
+                insert.insert(productList);
                 infos.fillTable();
             } catch (SQLException throwables) {
                 throwables.printStackTrace();

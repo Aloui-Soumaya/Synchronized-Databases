@@ -1,4 +1,4 @@
-package Synchronized_Database.Branch_offices1;
+package Synchronized_Database.Branch_offices2;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.List;
 
 public class Infos {
-    final Object[] column = {"Date","Region","Product","Quantity","Cost","AMT","Tax","Total"};
+    final Object[] column = {"Date","Id","Region","Product","Quantity","Cost","AMT","Tax","Total"};
     private JScrollPane scrollPane;
     private JTable dataTable;
     DefaultTableModel dtm;
@@ -35,9 +35,10 @@ public class Infos {
     public void fillTable() throws SQLException {
         dtm.setRowCount(0);
         RetrieveFromBO1 retrieveFromBO1 = new RetrieveFromBO1(true);
-        List<Product> productEntityList = retrieveFromBO1.retrieve();
+        List<Product> productEntityList = retrieveFromBO1.retrieve("ajout");
         for (Product p : productEntityList){
             dtm.addRow(new Object[]{p.getDate().toString(),
+                    p.getId(),
                     p.getRegion(),
                     p.getProduct(),
                     Integer.toString(p.getQty()),
