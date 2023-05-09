@@ -16,7 +16,7 @@ import static Synchronized_Database.Branch_offices2.Branche_OfficeJob2.*;
 
 
 public class FormulaireAjout extends JPanel{
-    public final static String QUEUE_NAME="product_queue1";
+    public final static String QUEUE_NAME="product_queue2";
 
     private Connection connection1,connection2 = null;
     private Statement statement = null;
@@ -248,8 +248,7 @@ public class FormulaireAjout extends JPanel{
             try {
                 Calendar calendar = Calendar.getInstance();
                 java.sql.Date startDate = new java.sql.Date(calendar.getTime().getTime());
-
-                String url ="jdbc:mysql://localhost:3306/BO1";
+                String url ="jdbc:mysql://localhost:3306/BO2";
                 String user="root";
                 String password = "";
                 connection1 = DriverManager.getConnection(
@@ -286,11 +285,36 @@ public class FormulaireAjout extends JPanel{
                 idFiled.setText("");
                 infos.fillTable();
                 System.out.println("succes");
+                /********  Rabbit mq ********/
+                Product product1 = new Product();
+                product1.setId(idProduct);
+                product1.setDate(startDate);
+                product1.setRegion(region);
+                product1.setProduct(product);
+                product1.setQty(qty);
+                product1.setCost(cost);
+                product1.setAmt(amt);
+                product1.setTax(tax);
+                product1.setTotal(total);
+                product1.setBo_num(2);
+                product1.setMethod("modifier");
+                java.util.List<Product> res = new ArrayList<>();
+                res.add(product1);
+                String message = serialize(res);
+                System.out.println("what is new to update: "+ message);
+                ConnectionFactory connectionFactory = new ConnectionFactory();
+                connectionFactory.setHost("localhost");
+                try (com.rabbitmq.client.Connection connection = connectionFactory.newConnection()) {
+                    Channel channel = connection.createChannel();
+                    channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+                    channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
+                    System.out.println(" [x] sent '" + message + " '" + LocalDateTime.now().toString());
+                } catch (Exception e1){ }
+                /********  Rabbit mq ********/
             } catch (Exception exception){
 
             }
         }
     }
-
 
 }

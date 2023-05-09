@@ -32,7 +32,7 @@ public class RetrieveFromBO2 {
                 productEntity.setAmt(rs.getDouble("amt"));
                 productEntity.setTax(rs.getFloat("tax"));
                 productEntity.setTotal(rs.getDouble("total"));
-                productEntity.setBo_num(1);
+                productEntity.setBo_num(2);
                 productEntity.setMethod(method);
                 res.add(productEntity);
             }
