@@ -45,7 +45,6 @@ public class Branche_OfficeJob2 {
             Channel channel = connection.createChannel();
             channel.queueDeclare(QUEUE_NAME, false, false, false, null);
             channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
-            System.out.println(" [x] sent '" + message + " '" + LocalDateTime.now().toString());
             updateBO2.update(productEntityList);
 
        } catch (Exception e){ }

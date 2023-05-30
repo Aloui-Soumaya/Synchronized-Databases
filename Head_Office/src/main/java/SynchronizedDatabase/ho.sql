@@ -10,5 +10,4 @@ CREATE TABLE product_sale(
                              total NUMERIC,
                              bo_num INTEGER
 );
--- Pour Vérifier
 SELECT * FROM product_sale;
